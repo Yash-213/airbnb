@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const Listing = require("./models/listing");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
+const wrapAsync = require("./utils/wrapAsync");
+const ExpressError = require("./utils/ExpressError");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/airbnb";
 
@@ -31,10 +33,10 @@ app.get("/", (req, res) => {
     res.send("Hello World");
 });
 // Index Route
-app.get("/listings", async (req, res) => {
+app.get("/listings", wrapAsync(async (req, res) => {
     const allListing = await Listing.find({});
     res.render("listings/index", { allListing }); 
-});
+}));
 
 //New Route
 app.get("/listings/new", (req,res)=>{
@@ -42,52 +44,60 @@ app.get("/listings/new", (req,res)=>{
 });
 
 //Create Listing
-app.post("/listings", async(req, res)=>{
+app.post("/listings", wrapAsync(async(req, res, next)=>{
     const newListing = new Listing(req.body.listing);
-    newListing.image.url = req.body.listing.image;
     await newListing.save();
     res.redirect("/listings")
-});
+}));
 
 //Show Data
-app.get("/listings/:id", async(req, res)=>{
+app.get("/listings/:id", wrapAsync(async(req, res, next)=>{
     let {id} = req.params;
     const listing = await Listing.findById(id);
+    if (!listing) {
+        return next(new ExpressError(404, "Listing not found!"));
+    }
     res.render("listings/show",{listing});
-});
+}));
 
 //Update Data
-app.get("/listings/:id/edit", async(req, res)=>{
+app.get("/listings/:id/edit", wrapAsync(async(req, res, next)=>{
     let {id} = req.params;
     const listing = await Listing.findById(id);
+    if (!listing) {
+        return next(new ExpressError(404, "Listing not found!"));
+    }
     res.render("listings/edit", {listing});
-})
+}));
 
-app.put("/listings/:id", async(req,res)=>{
+app.put("/listings/:id", wrapAsync(async(req,res, next)=>{
     let {id} = req.params;
-    await Listing.findByIdAndUpdate(id,{...req.body.listing});
+    const listing = await Listing.findByIdAndUpdate(id,{...req.body.listing});
+    if (!listing) {
+        return next(new ExpressError(404, "Listing not found!"));
+    }
     res.redirect(`/listings/${id}`);
-})
+}));
 
 //Delete Route
-app.delete("/listings/:id", async(req, res)=>{
+app.delete("/listings/:id", wrapAsync(async(req, res, next)=>{
     let {id} = req.params;
     const deletedListing = await Listing.findByIdAndDelete(id);
+    if (!deletedListing) {
+        return next(new ExpressError(404, "Listing not found!"));
+    }
     console.log(deletedListing);
     res.redirect("/listings");
-})
+}));
 
-// app.get("/testing", async (req, res) => {
-//     let sampleListing = new Listing({
-//         title: "Hello World",
-//         description: "this is lovely house",
-//         price: 5000,
-//         location: "Nandani",
-//         country: "India"
-//     });
-//     await sampleListing.save();
-//     res.send("successfully saved");
-// });
+app.all("*", (req, res, next) => {
+    next(new ExpressError(404, "Page Not Found!"));
+});
+
+app.use((err, req, res, next) => {
+    let { statusCode = 500, message = "Something went wrong!" } = err;
+    res.status(statusCode).render("listings/error", { message });
+});
 
 const port = 5000;
 app.listen(port, () => {
