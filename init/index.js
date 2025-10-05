@@ -1,25 +1,23 @@
 const mongoose = require("mongoose");
-const initData = require("./data.js");
-const Listing = require("../models/listing.js");
+const Listing = require("../models/listing");
+const initData = require("./data");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
-
-main()
-  .then(() => {
-    console.log("connected to DB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+const MONGO_URL = "mongodb://127.0.0.1:27017/airbnb";
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+    try {
+        await mongoose.connect(MONGO_URL);
+        console.log("MongoDB connected!");
+
+        await Listing.deleteMany({});
+        await Listing.insertMany(initData.data);
+        console.log("Data initialized.");
+
+        await mongoose.disconnect(); 
+        console.log("MongoDB disconnected.");
+    } catch (err) {
+        console.error("Error during DB initialization:", err);
+    }
 }
 
-const initDB = async () => {
-  await Listing.deleteMany({});
-  await Listing.insertMany(initData.data);
-  console.log("data was initialized");
-};
-
-initDB();
+main();
