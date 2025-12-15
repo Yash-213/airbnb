@@ -53,50 +53,6 @@ Passport.js
 Express Session
 
 
-📂 Project Structure
-airbnb-clone/
-│
-├── models/        # Mongoose schemas
-├── routes/        # Express routes
-├── views/         # EJS templates
-├── public/        # CSS, JS, images
-├── middleware/    # Auth & validation
-├── utils/         # Helper functions
-├── app.js         # Main app file
-└── package.json
-
-⚙️ Installation & Setup
-
-1️⃣ Clone the repository
-
-git clone https://github.com/your-username/airbnb-clone.git
-
-
-2️⃣ Navigate to the project directory
-
-cd airbnb-clone
-
-
-3️⃣ Install dependencies
-
-npm install
-
-
-4️⃣ Set up environment variables (.env)
-
-MONGO_URI=your_mongodb_connection_string
-SESSION_SECRET=your_secret_key
-
-
-5️⃣ Run the application
-
-npm start
-
-
-6️⃣ Open in browser
-
-http://localhost:3000
-
 📸 Screenshots
 
 Screenshots will be added soon.
