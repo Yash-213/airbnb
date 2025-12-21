@@ -10,7 +10,7 @@ router
   .post(userController.signup);
 
 router
-  .route("login")
+  .route("/login")
   .get(userController.rederLoginForm)
   .post(
     saveRedirectUrl,
