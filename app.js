@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 
 const express = require("express");
@@ -10,23 +9,18 @@ const ejsMate = require("ejs-mate");
 
 const routes = require("./routes");
 const bootstrapAdmin = require("./utils/bootstrapAdmin");
-const {
-    loadCurrentUser,
-    loadFlashMessages
-} = require("./middleware/locals");
+const { loadCurrentUser, loadFlashMessages } = require("./middleware/locals");
 
-const {
-    notFound,
-    errorHandler
-} = require("./middleware/errorHandler");
+const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
 const mongoURL = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/airbnb";
-const sessionSecret = process.env.SESSION_SECRET ||
-    (process.env.NODE_ENV === "production"
-        ? null
-        : "local-development-session-secret");
+const sessionSecret =
+  process.env.SESSION_SECRET ||
+  (process.env.NODE_ENV === "production"
+    ? null
+    : "local-development-session-secret");
 const port = process.env.PORT || 5000;
 
 // View engine
@@ -41,11 +35,13 @@ app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
 if (sessionSecret) {
-    app.use(session({
-        secret: sessionSecret,
-        resave: false,
-        saveUninitialized: false
-    }));
+  app.use(
+    session({
+      secret: sessionSecret,
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
 }
 
 // Shared EJS locals
@@ -62,22 +58,25 @@ app.use(notFound);
 app.use(errorHandler);
 
 const startServer = async () => {
-    if (!sessionSecret) {
-        throw new Error("SESSION_SECRET must be configured before starting the server");
-    }
+  if (!sessionSecret) {
+    throw new Error(
+      "SESSION_SECRET must be configured before starting the server",
+    );
+  }
 
-    await mongoose.connect(mongoURL);
-    await bootstrapAdmin();
-    app.listen(port, "127.0.0.1", () => {
-        console.log(`Server is running at http://localhost:${port}`);
-    });
+  await mongoose.connect(mongoURL);
+  await bootstrapAdmin();
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 };
 
 if (require.main === module) {
-    startServer().catch(error => {
-        console.error("Could not start the server:", error);
-        process.exitCode = 1;
-    });
+  startServer().catch((error) => {
+    console.error("Could not start the server:", error);
+    process.exitCode = 1;
+  });
 }
 
 module.exports = app;
