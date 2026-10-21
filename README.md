@@ -94,7 +94,7 @@ This project is for learning and educational purposes.
 
 The app runs at `http://localhost:5000` by default and connects to a local
 MongoDB instance at `mongodb://127.0.0.1:27017/airbnb`. Start MongoDB before
-running `npm start`. You can override these defaults with `MONGO_URL` and
+running `npm start`. You can override these defaults with `MONGO_URI` and
 `PORT` in `.env`. Local development uses a built-in session secret; set a
 unique `SESSION_SECRET` for deployments. Cloudinary credentials (`CLOUD_NAME`,
 `CLOUD_API_KEY`, and `CLOUD_API_SECRET`) are needed for listing image uploads.

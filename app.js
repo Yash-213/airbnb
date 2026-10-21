@@ -15,7 +15,7 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
-const mongoURL = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/airbnb";
+const mongoURL = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/airbnb";
 const sessionSecret =
   process.env.SESSION_SECRET ||
   (process.env.NODE_ENV === "production"
