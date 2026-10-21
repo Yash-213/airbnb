@@ -15,7 +15,7 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
-const mongoURL = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/airbnb";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/airbnb";
 const sessionSecret =
   process.env.SESSION_SECRET ||
   (process.env.NODE_ENV === "production"
@@ -64,7 +64,7 @@ const startServer = async () => {
     );
   }
 
-  await mongoose.connect(mongoURL);
+  await mongoose.connect(MONGO_URI);
   await bootstrapAdmin();
   app.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}`);
