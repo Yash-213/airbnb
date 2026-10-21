@@ -16,6 +16,13 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 const app = express();
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/airbnb";
+console.log("MONGO_URL exists:", Boolean(process.env.MONGO_URL));
+console.log(
+  "MongoDB target:",
+  process.env.MONGO_URL
+    ? "Atlas/configured URI"
+    : "LOCALHOST FALLBACK"
+);
 const sessionSecret =
   process.env.SESSION_SECRET ||
   (process.env.NODE_ENV === "production"
