@@ -1,0 +1,36 @@
+<% layout("layouts/boilerplate") %>
+
+<section class="admin-page">
+    <header class="admin-header">
+        <p class="eyebrow">ADMIN DASHBOARD</p>
+        <h1>Host requests <span class="text-muted">(<%= users.length %>)</span></h1>
+        <p class="text-muted">Review and respond to host applications.</p>
+    </header>
+
+    <% if (users.length === 0) { %>
+        <div class="admin-empty">
+            <h2 class="h5">All caught up</h2>
+            <p class="text-muted mb-0">There are no pending host requests.</p>
+        </div>
+    <% } else { %>
+        <div class="admin-requests">
+            <% users.forEach(user => { %>
+                <article class="admin-request-card">
+                    <div class="admin-user-info">
+                        <h2 class="h5 mb-1"><%= user.username %></h2>
+                        <p class="text-muted mb-0"><%= user.email %></p>
+                    </div>
+                    <span class="status-pending">Pending review</span>
+                    <div class="admin-request-actions">
+                        <form action="/admin/host-requests/<%= user._id %>/approve" method="POST">
+                            <button type="submit" class="btn btn-sm btn-brand">Approve</button>
+                        </form>
+                        <form action="/admin/host-requests/<%= user._id %>/reject" method="POST">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Decline</button>
+                        </form>
+                    </div>
+                </article>
+            <% }) %>
+        </div>
+    <% } %>
+</section>

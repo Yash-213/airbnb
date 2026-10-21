@@ -1,5 +1,6 @@
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const ExpressError = require("./utils/ExpressError");
 
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
@@ -9,28 +10,29 @@ cloudinary.config({
 
 const storage = multer.memoryStorage();
 
-// This is your custom middleware "Bridge"
 const cloudUpload = (req, res, next) => {
     if (!req.file) return next();
 
-    // 1. Start the upload stream
     const stream = cloudinary.uploader.upload_stream(
         { folder: 'airbnb_DEV' },
         (error, result) => {
             if (error) {
-                return res.status(500).json({ error: "Cloudinary Upload Failed", details: error });
+                const uploadError = new ExpressError(502, "Image upload failed");
+                uploadError.cause = error;
+                return next(uploadError);
             }
-            
-            // 2. THIS IS CRITICAL: Assign the path inside the callback
+
+            if (!result || !result.secure_url || !result.public_id) {
+                return next(new ExpressError(502, "Image upload did not return an image"));
+            }
+
             req.file.path = result.secure_url;
             req.file.filename = result.public_id;
-            
-            // 3. ONLY call next() once the upload is actually finished
-            next(); 
+
+            next();
         }
     );
 
-    // 4. Send the buffer to the stream
     stream.end(req.file.buffer);
 };
 

@@ -1,0 +1,39 @@
+<% layout("layouts/boilerplate") %>
+
+<section class="host-listings-page">
+    <header class="my-listings-header d-flex flex-wrap justify-content-between align-items-end gap-3">
+        <div>
+            <p class="eyebrow">HOST DASHBOARD</p>
+            <h1>My listings <span class="text-muted">(<%= listings.length %>)</span></h1>
+            <p class="text-muted mb-0">Manage the places you share with guests.</p>
+        </div>
+        <a href="/listings/new" class="btn btn-brand">Create a listing</a>
+    </header>
+
+    <% if (listings.length === 0) { %>
+        <div class="my-listings-empty">
+            <h2 class="h5">Your first listing starts here</h2>
+            <p class="text-muted">Add a few details and welcome your first guests.</p>
+            <a href="/listings/new" class="btn btn-brand">Create your first listing</a>
+        </div>
+    <% } else { %>
+        <div class="my-listings-list">
+            <% listings.forEach(listing => { %>
+                <article class="my-listing-card">
+                    <div class="my-listing-main">
+                        <h2 class="h5"><%= listing.title %></h2>
+                        <p class="text-muted mb-3"><%= listing.location %>, <%= listing.country %></p>
+                        <div class="my-listing-details">
+                            <div><span class="my-listing-label">Price</span><strong>₹<%= listing.price.toLocaleString("en-IN") %> / night</strong></div>
+                            <div><span class="my-listing-label">Maximum guests</span><strong><%= listing.maxGuests || 2 %></strong></div>
+                        </div>
+                    </div>
+                    <div class="my-listing-action">
+                        <a href="/listings/<%= listing._id %>" class="btn btn-outline-secondary">View stay</a>
+                        <a href="/listings/<%= listing._id %>/edit" class="btn btn-brand">Edit</a>
+                    </div>
+                </article>
+            <% }) %>
+        </div>
+    <% } %>
+</section>

@@ -1,68 +1,172 @@
+
+const mongoose = require("mongoose");
 const Listing = require("../models/listing");
+const Booking = require("../models/booking");
+const wrapAsync = require("../utils/wrapAsync");
+const ExpressError = require("../utils/ExpressError");
+const buildListingFilter = require("../utils/buildListingFilter");
 
-module.exports.index = async (req, res) => {
-  const allListing = await Listing.find({});
-  res.render("listings/index", { allListing });
+module.exports.index = wrapAsync(async (req, res) => {
+    const { q, country, sort } = req.query;
+    let query = Listing.find(buildListingFilter({ q, country }));
+
+    if (sort === "price-asc") {
+        query = query.sort({ price: 1 });
+    }
+
+    if (sort === "price-desc") {
+        query = query.sort({ price: -1 });
+    }
+
+    const listings = await query;
+    const countries = (await Listing.distinct("country"))
+        .filter(value => typeof value === "string" && value.trim())
+        .sort((first, second) => first.localeCompare(second));
+
+    res.render("listings/index.ejs", {
+        listings,
+        q: typeof q === "string" ? q : "",
+        country: typeof country === "string" ? country : "",
+        sort,
+        countries
+    });
+});
+
+module.exports.renderNewForm = (req, res) => {
+    res.render("listings/new.ejs");
 };
 
-module.exports.rederNewForm = (req, res) => {
-  res.render("listings/new");
-};
+module.exports.create = wrapAsync(async (req, res) => {
+    if (!req.file) {
+        throw new ExpressError(400, "Please upload a listing image");
+    }
 
-module.exports.showListing = async (req, res) => {
-  let { id } = req.params;
-  const listing = await Listing.findById(id)
-    .populate({ path: "reviews", populate: { path: "author" } })
-    .populate("owner");
-  if (!listing) {
-    req.flash("error", "Listing Does not exist!!");
-    return res.redirect("/listings");
-  }
-  res.render("listings/show", { listing });
-};
+    const newListing = new Listing(req.body.listing);
+    newListing.owner = req.session.userId;
+    newListing.image = {
+        filename: req.file.filename,
+        url: req.file.path
+    };
 
-module.exports.createListing = async (req, res) => {
-  let url = req.file.path;
-  let filename = req.file.filename;
-  const newListing = new Listing(req.body.listing);
-  newListing.owner = req.user._id;
-  newListing.image = { filename, url };
-  await newListing.save();
-  req.flash("seccess", "New Listing created!!");
-  res.redirect("/listings");
-};
+    await newListing.save();
 
-module.exports.editListing = async (req, res) => {
-  let { id } = req.params;
-  const listing = await Listing.findById(id);
-  if (!listing) {
-    req.flash("error", "Listing Does not exist!!");
-    return res.redirect("/listings");
-  }
+    res.redirect("/listings");
+});
 
-  let originalImageUrl = listing.image.url;
-  originalImageUrl = originalImageUrl.replace("/upload", "/upload/h_200,w_250");
-  console.log(listing.image.url);
-  res.render("listings/edit", { listing, originalImageUrl });
-};
+module.exports.renderEditForm = wrapAsync(async (req, res) => {
+    const { id } = req.params;
 
-module.exports.updateListing = async (req, res) => {
-  let { id } = req.params;
-  let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
-  if (typeof req.file !== "undefined") {
-    let url = req.file.path;
-    let filename = req.file.filename;
-    listing.image = { filename, url };
-    await listing.save();
-  }
-  req.flash("seccess", "Listing Updated!!");
-  res.redirect(`/listings/${id}`);
-};
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ExpressError(404, "Listing Not Found");
+    }
 
-module.exports.destroyListing = async (req, res) => {
-  let { id } = req.params;
-  const deletedListing = await Listing.findByIdAndDelete(id);
-  console.log(deletedListing);
-  req.flash("seccess", "Listing Deleted!!");
-  res.redirect("/listings");
-};
+    const listing = await Listing.findById(id);
+
+    if (!listing) {
+        throw new ExpressError(404, "Listing Not Found");
+    }
+
+    res.render("listings/edit.ejs", { listing });
+});
+
+module.exports.update = wrapAsync(async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ExpressError(404, "Listing Not Found");
+    }
+
+    const listing = await Listing.findByIdAndUpdate(
+        id,
+        {
+            ...req.body.listing,
+            ...(req.file && {
+                image: {
+                    filename: req.file.filename,
+                    url: req.file.path
+                }
+            })
+        },
+        { new: true, runValidators: true }
+    );
+
+    if (!listing) {
+        throw new ExpressError(404, "Listing Not Found");
+    }
+
+    res.redirect(`/listings/${listing._id}`);
+});
+
+module.exports.destroy = wrapAsync(async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ExpressError(404, "Listing Not Found");
+    }
+
+    const existingBooking = await Booking.findOne({
+        listing: id
+    });
+
+    if (existingBooking) {
+        throw new ExpressError(
+            400,
+            "You cannot delete a listing with booking history"
+        );
+    }
+
+    const deletedListing = await Listing.findByIdAndDelete(id);
+
+    if (!deletedListing) {
+        throw new ExpressError(404, "Listing Not Found");
+    }
+
+    res.redirect("/listings");
+});
+
+module.exports.show = wrapAsync(async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ExpressError(404, "Listing Not Found");
+    }
+
+    const listing = await Listing.findById(id).populate("owner");
+
+    if (!listing) {
+        throw new ExpressError(404, "Listing Not Found");
+    }
+
+    await listing.populate({
+        path: "reviews",
+        populate: { path: "author" }
+    });
+    const reviews = listing.reviews.filter(Boolean);
+
+    const averageRating = reviews.length
+        ? reviews.reduce((sum, review) => sum + review.rating, 0)
+            / reviews.length
+        : 0;
+
+    const hasReviewed = req.session.userId
+        ? reviews.some(review =>
+            review.author &&
+            review.author._id.equals(req.session.userId)
+        )
+        : false;
+
+    res.render("listings/show.ejs", {
+        listing,
+        reviews,
+        hasReviewed,
+        averageRating
+    });
+});
+
+module.exports.hostListings = wrapAsync(async (req, res) => {
+    const listings = await Listing.find({
+        owner: req.session.userId
+    });
+
+    res.render("listings/host.ejs", { listings });
+});

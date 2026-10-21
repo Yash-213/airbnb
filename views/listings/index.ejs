@@ -1,18 +1,67 @@
 <% layout("layouts/boilerplate") -%>
-<h3>All Listings:</h3>
-<div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
-    <%for(let listing of allListing){%>
-        <a href="/listings/<%= listing._id %>" class="listing-link">
-        <div class="card col listing-card" style="width: 17rem;">
-            <img src="<%= listing.image.url %>" class="card-img-top" alt="img" style="height: 20rem;">
-            <div class="card-img-overlay"></div>
-            <div class="card-body">
-                <p class="card-text">
-                    <b><%=listing.title%></b> <br>
-                    &#8377;<%=listing.price.toLocaleString("en-IN") %>/night
-                </p>
-            </div>
+<section class="page-heading">
+    <p class="eyebrow">FIND YOUR NEXT GETAWAY</p>
+    <h1>Explore stays</h1>
+    <p class="text-muted mb-0">Thoughtful places for memorable trips.</p>
+</section>
+<form action="/listings" method="GET" class="search-panel mb-4">
+    <div class="row g-2 align-items-end">
+      <div class="col-lg-4">
+        <label class="form-label" for="search-listings">Where</label>
+        <input id="search-listings" type="search" name="q" value="<%= q || '' %>" class="form-control" placeholder="Search by stay name">
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label" for="filter-country">Country</label>
+        <input id="filter-country" type="search" name="country" value="<%= country || '' %>" class="form-control" placeholder="Any country" list="listing-countries" autocomplete="off">
+        <datalist id="listing-countries">
+            <% for (const countryName of countries) { %>
+                <option value="<%= countryName %>"></option>
+            <% } %>
+        </datalist>
+      </div>
+      <div class="col-lg-3">
+        <label class="form-label" for="sort-listings">Sort by</label>
+        <select id="sort-listings" name="sort" class="form-select">
+            <option value="">Recommended</option>
+            <option value="price-asc" <%= sort === "price-asc" ? "selected" : "" %>>Price: low to high</option>
+            <option value="price-desc" <%= sort === "price-desc" ? "selected" : "" %>>Price: high to low</option>
+        </select>
+      </div>
+      <div class="col-lg-2 d-flex gap-2">
+        <button class="btn btn-brand flex-grow-1" type="submit">Search</button>
+        <a class="btn btn-light" href="/listings" aria-label="Clear search">Clear</a>
+      </div>
+    </div>
+</form>
+<div class="results-heading">
+    <span><strong><%= listings.length %></strong> <%= listings.length === 1 ? "stay" : "stays" %></span>
+</div>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4 listing-grid">
+    <% for (const listing of listings) { %>
+        <div class="col">
+            <a href="/listings/<%= listing._id %>" class="listing-link">
+              <article class="listing-card">
+                <img src="<%= listing.image && listing.image.url %>" class="listing-card-image" alt="<%= listing.title %>" loading="lazy">
+                <div class="listing-card-body">
+                  <div class="listing-card-title">
+                    <h2><%= listing.title %></h2>
+                    <span><%= listing.country %></span>
+                  </div>
+                  <p class="listing-card-location"><%= listing.location %></p>
+                  <p class="listing-card-price"><strong>₹<%= listing.price.toLocaleString("en-IN") %></strong> <span>/ night</span></p>
+                </div>
+              </article>
+            </a>
         </div>
-        </a>
+    <% } %>
+    <% if (listings.length === 0) { %>
+        <div class="col-12">
+          <div class="empty-state">
+            <span class="empty-state-icon"><i class="fa-regular fa-compass" aria-hidden="true"></i></span>
+            <h2>No stays found</h2>
+            <p>Try another destination or clear the filters to see every stay.</p>
+            <a class="btn btn-brand" href="/listings">Show all stays</a>
+          </div>
+        </div>
     <% } %>
 </div>

@@ -1,14 +1,16 @@
 <% layout("layouts/boilerplate") -%>
-<div class="row">
-  <div class="col-8 offset-2">
-    <h3>Create New Listing:</h3>
-    <form method="POST" action="/listings" novalidate class="needs-validation" enctype="multipart/form-data">
+<section class="form-page">
+    <p class="eyebrow">SHARE YOUR SPACE</p>
+    <h1>Create a listing</h1>
+    <p class="text-muted mb-4">Add the details guests need to plan a great stay.</p>
+    <form method="POST" action="/listings" novalidate class="needs-validation form-card" enctype="multipart/form-data">
       <div class="mb-3">
         <label for="title" class="form-label">Title:</label>
         <input
           type="text"
+          id="title"
           name="listing[title]"
-          placeholder="Add catchy title"
+          placeholder="e.g. Quiet cottage near the lake"
           class="form-control"
           required
         />
@@ -17,10 +19,11 @@
       <div class="mb-3">
         <label for="description" class="form-label">Description:</label>
         <textarea
-          type="text"
+          id="description"
           name="listing[description]"
           placeholder="Peaceful Home"
           class="form-control"
+          rows="4"
           required
         ></textarea>
         <div class="invalid-feedback">Please enter a short description</div>
@@ -29,18 +32,23 @@
         <label for="image" class="form-label">Upload Image:</label>
         <input
           type="file"
+          id="image"
           name="listing[image][url]"
           class="form-control"
           required
+          accept="image/*"
         />
       </div>
       <div class="row">
         <div class="mb-3 col-md-4">
           <label for="price" class="form-label">Price:</label>
           <input
-            type="text"
+            type="number"
+            id="price"
             name="listing[price]"
             placeholder="1000"
+            min="0"
+            step="1"
             class="form-control"
             required
           />
@@ -50,6 +58,7 @@
           <label for="country" class="form-label">Country:</label>
           <input
             type="text"
+            id="country"
             name="listing[country]"
             placeholder="India"
             class="form-control"
@@ -60,9 +69,23 @@
       </div>
 
       <div class="mb-3">
+        <label for="maxGuests" class="form-label">Maximum guests:</label>
+        <input
+          type="number"
+          id="maxGuests"
+          name="listing[maxGuests]"
+          value="2"
+          min="1"
+          class="form-control"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
         <label for="location" class="form-label">Location:</label>
         <input
           type="text"
+          id="location"
           name="listing[location]"
           placeholder="Pune, Mumbai"
           class="form-control"
@@ -71,8 +94,9 @@
         <div class="invalid-feedback">Location should be valid</div>
       </div>
 
-      <button class="btn btn-dark add-btn">ADD</button>
-      <br /><br />
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button class="btn btn-brand add-btn" type="submit">Publish listing</button>
+        <a href="/host/listings" class="btn btn-light">Cancel</a>
+      </div>
     </form>
-  </div>
-</div>
+</section>

@@ -1,13 +1,20 @@
-<% if(success && success.length){ %>
-<div class="alert alert-success alert-dismissible fade show col-6 offset-3" role="alert">
-    <%= success %>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-<% }%>
-
-<% if(error && error.length){ %>
-<div class="alert alert-danger alert-dismissible fade show col-6 offset-3" role="alert">
-    <%= error %>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-<% }%>
+<% if (success || error) { %>
+  <div class="toast-container position-fixed top-0 end-0 p-3 app-toast-container">
+    <div
+      id="app-toast"
+      class="toast app-toast <%= error ? 'app-toast-error' : 'app-toast-success' %>"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-bs-delay="5000"
+    >
+      <div class="d-flex align-items-center">
+        <div class="toast-body">
+          <strong class="d-block"><%= error ? "Something needs attention" : "All set" %></strong>
+          <span><%= error || success %></span>
+        </div>
+        <button type="button" class="btn-close me-3" data-bs-dismiss="toast" aria-label="Dismiss"></button>
+      </div>
+    </div>
+  </div>
+<% } %>

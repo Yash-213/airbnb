@@ -1,22 +1,40 @@
-<nav class="navbar navbar-expand-md bg-body-light sticky-top shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/"><i class="fa-regular fa-compass"></i></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+<nav class="navbar navbar-expand-lg app-navbar sticky-top">
+  <div class="container">
+    <a class="navbar-brand app-brand" href="/" aria-label="WanderLust home">
+      <i class="fa-regular fa-compass" aria-hidden="true"></i>
+      <span>WanderLust</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Open navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <div class="navbar-nav">
           <a class="nav-link" href="/">Home</a>
-          <a class="nav-link" href="/listings">All Listing</a>
-          <a class="nav-link" href="/listings/new">Add New Listing</a>
+          <a class="nav-link" href="/listings">Explore stays</a>
+          <% if (currentUser && currentUser.role === "host") { %>
+            <a class="nav-link" href="/listings/new">Add New Listing</a>
+            <a class="nav-link" href="/host/listings">My Listings</a>
+            <a class="nav-link" href="/host/bookings">Host Bookings</a>
+          <% } %>
       </div>
-      <div class="navbar-nav ms-auto">
-        <% if (!currUser) { %>
-          <a class="nav-link" href="/signup">Signup</a>
-          <a class="nav-link" href="/login">Login</a>
+      <div class="navbar-nav ms-auto align-items-lg-center">
+        <% if (!currentUser) { %>
+          <a class="nav-link" href="/login">Log in</a>
+          <a class="btn btn-brand btn-sm ms-lg-2" href="/signup">Create account</a>
         <% } %>  
-        <% if (currUser) { %>
-          <a class="nav-link" href="/logout">Logout</a>
+        <% if (currentUser) { %>
+          <a class="nav-link" href="/bookings">My Bookings</a>
+          <% if (currentUser.role === "guest" && currentUser.hostRequestStatus === "pending") { %>
+            <span class="nav-link host-pending" aria-live="polite">Host request pending</span>
+          <% } else if (currentUser.role === "guest") { %>
+            <form action="/become-host" method="POST" class="d-flex align-items-center">
+              <button class="nav-link host-nav-action" type="submit">Become a host</button>
+            </form>
+          <% } %>
+          <% if (currentUser.role === "admin") { %>
+            <a class="nav-link" href="/admin/host-requests">Host Requests</a>
+          <% } %>
+          <a class="nav-link" href="/logout">Log out</a>
         <% } %>  
       </div>
     </div>

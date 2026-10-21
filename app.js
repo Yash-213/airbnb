@@ -1,104 +1,83 @@
-if(process.env.NODE_ENV != "production"){
-    require("dotenv").config();
-}
+
+require("dotenv").config();
 
 const express = require("express");
-const app = express();
-const path = require("path");
 const mongoose = require("mongoose");
+const path = require("path");
+const session = require("express-session");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const ExpressError = require("./utils/ExpressError");
-const session = require("express-session");
-const flash = require("connect-flash");
-const passport = require("passport");
-const LocalStrategy = require("passport-local");
-const User = require("./models/user");
 
-const listingRouter = require("./routes/listing");
-const reviewRouter = require("./routes/review");
-const userRouter = require("./routes/user");
+const routes = require("./routes");
+const bootstrapAdmin = require("./utils/bootstrapAdmin");
+const {
+    loadCurrentUser,
+    loadFlashMessages
+} = require("./middleware/locals");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/airbnb";
+const {
+    notFound,
+    errorHandler
+} = require("./middleware/errorHandler");
 
-main()
-    .then(() => {
-        console.log('Connected to MongoDB!');
-    })
-    .catch((err) => {
-        console.log(err);
-    });
+const app = express();
 
-async function main() {
-    await mongoose.connect(MONGO_URL);
+const mongoURL = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/airbnb";
+const sessionSecret = process.env.SESSION_SECRET ||
+    (process.env.NODE_ENV === "production"
+        ? null
+        : "local-development-session-secret");
+const port = process.env.PORT || 5000;
+
+// View engine
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+app.engine("ejs", ejsMate);
+
+// Core middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(methodOverride("_method"));
+app.use(express.static(path.join(__dirname, "public")));
+
+if (sessionSecret) {
+    app.use(session({
+        secret: sessionSecret,
+        resave: false,
+        saveUninitialized: false
+    }));
 }
 
-// ---------- Setup ----------
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
-app.engine("ejs", ejsMate);
-app.use(express.static(path.join(__dirname, "public")));
-app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride("_method"));
+// Shared EJS locals
+app.use(loadCurrentUser);
+app.use(loadFlashMessages);
 
-//-----------Express Session-------------
-const sessionOptions = {
-    secret: "mysupersecretcode",
-    resave: false,
-    saveUninitialized: true,
-    cookie:{
-        expires: Date.now() + 7 * 24 * 60 * 1000,
-        maxAge: 7 * 24 * 60 * 1000,
+// Application routes
+app.use("/", routes);
+
+// 404 handler must come after all routes
+app.use(notFound);
+
+// Error handler must be last
+app.use(errorHandler);
+
+const startServer = async () => {
+    if (!sessionSecret) {
+        throw new Error("SESSION_SECRET must be configured before starting the server");
     }
+
+    await mongoose.connect(mongoURL);
+    await bootstrapAdmin();
+    app.listen(port, "127.0.0.1", () => {
+        console.log(`Server is running at http://localhost:${port}`);
+    });
 };
 
-// ---------- Routes ----------
+if (require.main === module) {
+    startServer().catch(error => {
+        console.error("Could not start the server:", error);
+        process.exitCode = 1;
+    });
+}
 
-// Home
-app.get("/", (req, res) => {
-    res.send("Hello World");
-});
-
-app.use(session(sessionOptions));
-app.use(flash());
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
-
-app.use((req, res, next)=>{
-    res.locals.success = req.flash("seccess");
-    res.locals.error = req.flash("error");
-    res.locals.currUser = req.user;
-    next();
-})
-
-//listings Route
-app.use("/listings", listingRouter);
-
-// Review Route
-app.use("/listings/:id/reviews", reviewRouter);
-
-//User Route
-app.use("/", userRouter);
-
-// ---------- Handle Unmatched Routes ----------
-app.use((req, res, next) => {
-    next(new ExpressError("Page Not Found", 404));
-});
-
-// ---------- Central Error Handler ----------
-app.use((err, req, res, next) => {
-    const { statusCode = 500 } = err;
-    if (!err.message) err.message = "Something went wrong!";
-    res.status(statusCode).render("error", { err });
-});
-
-// ---------- Server ----------
-const port = 5000;
-app.listen(port, () => {
-    console.log(`Connected to port ${port}...`);
-});
+module.exports = app;

@@ -1,20 +1,19 @@
 const joi = require("joi");
-const review = require("./models/review");
 
 module.exports.listingSchema = joi.object({
     listing: joi.object({
-        title: joi.string().required(),
+        title: joi.string().trim().required(),
         price: joi.number().required().min(0),
-        description: joi.string().required(),
-        country : joi.string().required(),
-        location: joi.string().required(),
-        ImageURL: joi.string().allow("null","")
-    }).required()
+        description: joi.string().trim().required(),
+        country: joi.string().trim().required(),
+        location: joi.string().trim().required(),
+        maxGuests: joi.number().integer().min(1)
+    }).required().unknown(false)
 });
 
 module.exports.reviewSchema = joi.object({
     review: joi.object({
-        rating: joi.number().required().min(0).max(5),
-        comment: joi.string().required()
+        rating: joi.number().integer().required().min(1).max(5),
+        comment: joi.string().trim().required()
     }).required()
-})
+});

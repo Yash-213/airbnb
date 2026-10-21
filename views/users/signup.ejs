@@ -1,7 +1,9 @@
 <% layout("layouts/boilerplate") -%>
-<div class="row mt-3">
-    <h1 class="col-6 offset-3">Signup on WonderLust</h1>
-    <div class="col-6 offset-3">
+<section class="auth-page">
+  <div class="auth-card">
+    <p class="eyebrow">YOUR NEXT TRIP STARTS HERE</p>
+    <h1>Create your account</h1>
+    <p class="auth-subtitle">Join WanderLust to save and book places you love.</p>
         <form action="/signup" method="POST" class="needs-validation" novalidate>
             
             <div class="mb-3">
@@ -12,6 +14,7 @@
                     name="username" 
                     placeholder="Add catchy username" 
                     class="form-control" 
+                    autocomplete="username"
                     required
                 >
                 <div class="valid-feedback">Username looks good!</div>
@@ -25,23 +28,39 @@
                     name="email" 
                     placeholder="abc@gmail.com" 
                     class="form-control" 
+                    autocomplete="email"
                     required
                 >
             </div>
 
             <div class="mb-3">
                 <label for="password" class="form-label">Password:</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Add strong password" 
-                    class="form-control" 
-                    required
-                >
+                <div class="password-field">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Add strong password"
+                        class="form-control"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+                    <button
+                        class="password-toggle"
+                        type="button"
+                        aria-label="Show password"
+                        aria-controls="password"
+                        aria-pressed="false"
+                    >
+                        <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="form-text">Use at least 8 characters.</div>
             </div>
                 
-            <button class="btn btn-dark">Signup</button>
+            <button class="btn btn-brand w-100">Create account</button>
         </form>
-    </div>
-</div>
+    <p class="auth-switch">Already have an account? <a href="/login">Log in</a></p>
+  </div>
+</section>

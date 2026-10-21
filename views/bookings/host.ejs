@@ -1,0 +1,42 @@
+<% layout("layouts/boilerplate") %>
+
+<section class="host-bookings-page">
+    <header class="host-bookings-header">
+        <p class="eyebrow">HOST DASHBOARD</p>
+        <h1>Guest bookings <span class="text-muted">(<%= bookings.length %>)</span></h1>
+        <p class="text-muted">See who is arriving and when.</p>
+    </header>
+
+    <% if (bookings.length === 0) { %>
+        <div class="host-bookings-empty">
+            <h2 class="h5">No guest bookings yet</h2>
+            <p class="text-muted mb-0">Bookings for your stays will appear here.</p>
+        </div>
+    <% } else { %>
+        <div class="host-bookings-list">
+            <% bookings.forEach(booking => { %>
+                <article class="host-booking-card">
+                    <div class="host-booking-main">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                            <div>
+                                <h2 class="h5 mb-1"><%= booking.listing ? booking.listing.title : "Listing unavailable" %></h2>
+                                <p class="text-muted mb-0">
+                                    Guest: <strong><%= booking.user ? booking.user.username : "Former user" %></strong>
+                                </p>
+                            </div>
+                            <span class="booking-status <%= booking.status === 'confirmed' ? 'confirmed' : 'cancelled' %>">
+                                <%= booking.status === "confirmed" ? "Confirmed" : "Cancelled" %>
+                            </span>
+                        </div>
+                        <div class="booking-details mt-3">
+                            <div><span class="booking-label">Check-in</span><strong><%= booking.checkIn.toLocaleDateString() %></strong></div>
+                            <div><span class="booking-label">Check-out</span><strong><%= booking.checkOut.toLocaleDateString() %></strong></div>
+                            <div><span class="booking-label">Guests</span><strong><%= booking.guests %></strong></div>
+                            <div><span class="booking-label">Total</span><strong>₹<%= booking.totalPrice.toLocaleString("en-IN") %></strong></div>
+                        </div>
+                    </div>
+                </article>
+            <% }) %>
+        </div>
+    <% } %>
+</section>
