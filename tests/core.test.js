@@ -5,6 +5,7 @@ const test = require("node:test");
 const ejs = require("ejs");
 const bcrypt = require("bcrypt");
 const { listingSchema, reviewSchema } = require("../schema");
+const { validateReview } = require("../middleware/validateReview");
 const Listing = require("../models/listing");
 const Review = require("../models/review");
 const User = require("../models/user");
@@ -72,6 +73,29 @@ test("review validation requires a rating between one and five", () => {
         reviewSchema.validate({
             review: { rating: 0, comment: "Great stay" }
         }).error
+    );
+});
+
+test("review validation middleware loads and rejects invalid request bodies", () => {
+    assert.doesNotThrow(() => require("../routes/review"));
+
+    let nextCalled = false;
+    validateReview(
+        { body: { review: { rating: "5", comment: " Great stay " } } },
+        {},
+        () => {
+            nextCalled = true;
+        }
+    );
+    assert.equal(nextCalled, true);
+
+    assert.throws(
+        () => validateReview(
+            { body: { review: { rating: 6, comment: "" } } },
+            {},
+            () => {}
+        ),
+        error => error instanceof ExpressError && error.statusCode === 400
     );
 });
 

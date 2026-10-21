@@ -4,7 +4,7 @@ const router = express.Router();
 
 const reviewController = require("../controllers/review");
 const { isLoggedIn, isReviewAuthor } = require("../middleware/auth");
-const { validateReview } = require("../middleware");
+const { validateReview } = require("../middleware/validateReview");
 
 router.post(
     "/listings/:id/reviews",
