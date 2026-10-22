@@ -10,6 +10,7 @@ const ejsMate = require("ejs-mate");
 
 const routes = require("./routes");
 const bootstrapAdmin = require("./utils/bootstrapAdmin");
+
 const {
   loadCurrentUser,
   loadFlashMessages,
@@ -22,19 +23,20 @@ const {
 
 const app = express();
 
+// Trust Render's reverse proxy for secure cookies.
+app.set("trust proxy", 1);
+
 // Environment variables
 const MONGO_URI =
   process.env.MONGO_URI || "mongodb://127.0.0.1:27017/airbnb";
 
 const sessionSecret =
   process.env.SESSION_SECRET ||
-  (process.env.NODE_ENV === "production"
-    ? null
-    : "local-development-session-secret");
+  (process.env.NODE_ENV === "production" ? null : "local-development-session-secret");
 
 const port = process.env.PORT || 5000;
 
-// Safe deployment diagnostics (never print credentials)
+// Safe deployment diagnostics
 console.log("MongoDB URI configured:", Boolean(process.env.MONGO_URI));
 console.log(
   "MongoDB target:",
@@ -61,12 +63,14 @@ if (!sessionSecret) {
 
 app.use(
   session({
+    name: "connect.sid",
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     },
   })
